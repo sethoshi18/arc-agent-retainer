@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>AgentRetainer Demo — Arc Testnet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',sans-serif;background:linear-gradient(160deg,#F5F0EB 0%,#EDE7E0 100%);min-height:100vh;color:#1a1a1a;padding-bottom:60px}
+#sb{position:sticky;top:0;z-index:100;background:#1a1a1a;color:#f0ebe4;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;letter-spacing:.02em}
+#sb .lbl{font-weight:700;letter-spacing:.05em;font-size:12px;text-transform:uppercase}
+#sb .wi{display:flex;gap:20px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:#888;display:inline-block;margin-right:6px}
+.dot.on{background:#ccc}
+.hero{max-width:860px;margin:48px auto 0;padding:0 24px}
+.hero h1{font-size:28px;font-weight:700;letter-spacing:-.5px;color:#111}
+.hero .sub{margin-top:6px;font-size:13px;font-weight:400;color:#888;letter-spacing:.06em;text-transform:uppercase}
+.hero p{margin-top:12px;font-size:14px;color:#555;line-height:1.65;max-width:620px}
+.abar{max-width:860px;margin:20px auto 0;padding:0 24px}
+.abar details{border:1px solid #d4cec8;border-radius:8px;padding:12px 16px;background:#faf7f4}
+.abar summary{cursor:pointer;font-size:13px;font-weight:500;color:#333;user-select:none}
+.ag{display:grid;grid-template-columns:160px 1fr;gap:5px 10px;margin-top:10px;font-size:12px}
+.ag span:nth-child(odd){color:#888;font-weight:500}
+.ag span:nth-child(even){font-family:monospace;color:#222;word-break:break-all}
+.air{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.air label{font-size:12px;color:#888;font-weight:500;white-space:nowrap}
+.air input{flex:1;min-width:300px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:6px;padding:6px 10px;background:#fff;color:#111}
+.steps{max-width:860px;margin:28px auto 0;padding:0 24px;display:flex;flex-direction:column;gap:22px}
+.card{background:#faf7f4;border:1px solid #d4cec8;border-radius:12px;padding:24px 24px 20px}
+.ch{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.sn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;background:#ede7e0;border:1px solid #d4cec8;border-radius:20px;padding:3px 10px;white-space:nowrap}
+.ch h2{font-size:16px;font-weight:600;color:#111}
+.card p{font-size:13px;color:#666;margin-bottom:10px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg.full{grid-template-columns:1fr}
+.fd{display:flex;flex-direction:column;gap:4px}
+.fd label{font-size:12px;font-weight:500;color:#555}
+.fd input,.fd textarea{border:1px solid #ccc;border-radius:7px;padding:8px 11px;font-size:14px;font-family:'Roboto',sans-serif;background:#fff;color:#111;transition:border-color .15s}
+.fd input:focus,.fd textarea:focus{outline:none;border-color:#888}
+.fd textarea{resize:vertical;min-height:56px}
+.fd small{font-size:11px;color:#aaa}
+.btn{display:inline-flex;align-items:center;gap:8px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:500;font-family:'Roboto',sans-serif;cursor:pointer;transition:background .15s;letter-spacing:.01em;margin-top:14px}
+.btn:hover{background:#333}.btn:active{background:#000}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sec{background:#fff;color:#1a1a1a;border:1px solid #ccc}.btn.sec:hover{background:#f0ebe4}
+.log{margin-top:12px;background:#1a1a1a;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;color:#ccc;min-height:40px;max-height:160px;overflow-y:auto;line-height:1.6;display:none}
+.log.on{display:block}
+.log .ll{margin-bottom:2px}.log .ll.err{color:#f08080}.log .ll.ok{color:#a0c8a0}
+.log .ll a{color:#aaddff;text-decoration:underline}
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vr{background:#fff;border:1px solid #d4cec8;border-radius:8px;padding:12px;font-size:13px;line-height:1.7;color:#333;min-height:56px}
+.vr strong{font-weight:600;display:block;margin-bottom:5px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#888}
+.mono{font-family:monospace;font-size:11px;word-break:break-all}
+@media(max-width:600px){.fg,.vg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="sb">
+  <span class="lbl">AgentRetainer Demo</span>
+  <div class="wi">
+    <span><span class="dot" id="dot"></span><span id="wa">Not connected</span></span>
+    <span id="wn" style="color:#aaa"></span>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>AgentRetainer Demo — Arc Testnet</h1>
+  <div class="sub">Layer 5: Recurring USDC Subscription Payments</div>
+  <p>End-to-end walkthrough of the AgentRetainer lifecycle: create a subscription plan, subscribe as a client, execute recurring USDC charges, then cancel.</p>
+</div>
+
+<div class="abar">
+  <details>
+    <summary>Contract Addresses</summary>
+    <div class="ag">
+      <span>AgentIdentity</span><span>0x5Bef356f89425823FC7eebB3A6ED1A678F3b8233</span>
+      <span>AgentJob</span><span>0xD698d15F776279c0213444a779941e8E0Cbe5094</span>
+      <span>AgentMarket</span><span>0x6BAf93EB026b7BC3db651065302D1934Ad577ec1</span>
+      <span>AgentOrchestrator</span><span>0xbA99f039b7892d9F546253444c95EDea822471b0</span>
+      <span>USDC</span><span>0x3600000000000000000000000000000000000000</span>
+    </div>
+    <div class="air">
+      <label>AgentRetainer:</label>
+      <input type="text" id="ra" placeholder="0x... (paste after deployment)" oninput="C.AgentRetainer=this.value.trim()" />
+    </div>
+  </details>
+</div>
+
+<div class="steps">
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 1</span><h2>Connect Wallet</h2></div>
+    <p>Connect MetaMask and switch to Arc Testnet (Chain ID 5042002).</p>
+    <button class="btn" onclick="connectWallet()">Connect MetaMask</button>
+    <div class="log" id="l1"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 2</span><h2>Create Plan</h2></div>
+    <p>Agent owner creates a subscription plan with USDC pricing and billing interval.</p>
+    <div class="fg">
+      <div class="fd"><label>Agent Token ID</label><input id="cp-agent" placeholder="e.g. 1" /></div>
+      <div class="fd"><label>Price (USDC, 6 decimals raw)</label><input id="cp-price" placeholder="e.g. 5000000 (= 5 USDC)" /><small>Raw 6-decimal value</small></div>
+      <div class="fd"><label>Interval (seconds)</label><input id="cp-interval" placeholder="e.g. 60 (1 min for testing)" /><small>Min 3600 on-chain, use low values on testnet</small></div>
+      <div class="fd"><label>Description</label><input id="cp-desc" placeholder="e.g. Monthly research reports" /></div>
+    </div>
+    <button class="btn" onclick="createPlan()">Create Plan</button>
+    <div class="log" id="l2"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 3</span><h2>Subscribe</h2></div>
+    <p>Client approves USDC and subscribes to a plan. First charge happens after one billing interval.</p>
+    <div class="fg">
+      <div class="fd"><label>Plan ID</label><input id="sub-plan" placeholder="e.g. 1" /></div>
+      <div class="fd"><label>USDC Approval Amount (raw)</label><input id="sub-approve" placeholder="e.g. 60000000 (= 60 USDC for 12 months)" /><small>Pre-approve enough for multiple cycles</small></div>
+    </div>
+    <button class="btn" onclick="doSubscribe()">Approve USDC &amp; Subscribe</button>
+    <div class="log" id="l3"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 4</span><h2>Charge (Cycle 1)</h2></div>
+    <p>Anyone can call charge() once the billing interval has elapsed. USDC flows from client to agent owner.</p>
+    <div class="fg">
+      <div class="fd"><label>Subscription ID</label><input id="ch1-sub" placeholder="e.g. 1" /></div>
+    </div>
+    <button class="btn" onclick="doCharge('ch1','l4')">Charge Subscription</button>
+    <div class="log" id="l4"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 5</span><h2>Charge (Cycle 2)</h2></div>
+    <p>Wait another interval and charge again. The cycle count increments with each successful charge.</p>
+    <div class="fg">
+      <div class="fd"><label>Subscription ID</label><input id="ch2-sub" placeholder="e.g. 1" /></div>
+    </div>
+    <button class="btn" onclick="doCharge('ch2','l5')">Charge Again</button>
+    <div class="log" id="l5"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 6</span><h2>Cancel Subscription</h2></div>
+    <p>Only the subscriber can cancel. No further charges will succeed after cancellation.</p>
+    <div class="fg">
+      <div class="fd"><label>Subscription ID</label><input id="cx-sub" placeholder="e.g. 1" /></div>
+    </div>
+    <button class="btn" onclick="doCancel()">Cancel Subscription</button>
+    <div class="log" id="l6"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="sn">Step 7</span><h2>View Status</h2></div>
+    <div class="fg">
+      <div class="fd"><label>Plan ID</label><input id="vs-plan" placeholder="e.g. 1" /></div>
+      <div class="fd"><label>Subscription ID</label><input id="vs-sub" placeholder="e.g. 1" /></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn sec" onclick="viewPlan()">Query Plan</button>
+      <button class="btn sec" onclick="viewSub()">Query Subscription</button>
+    </div>
+    <div class="vg" id="vrs" style="margin-top:14px;display:none">
+      <div class="vr" id="vr-p"><strong>Plan</strong><span class="mono">--</span></div>
+      <div class="vr" id="vr-s"><strong>Subscription</strong><span class="mono">--</span></div>
+    </div>
+    <div class="log" id="l7"></div>
+  </div>
+
+</div>
+
+<script>
+const CHAIN_ID = 5042002, CHAIN_HEX = "0x4CEC52";
+const EXPLORER = "https://testnet.arcscan.app";
+const C = {
+  AgentIdentity: "0x5Bef356f89425823FC7eebB3A6ED1A678F3b8233",
+  AgentJob: "0xD698d15F776279c0213444a779941e8E0Cbe5094",
+  AgentMarket: "0x6BAf93EB026b7BC3db651065302D1934Ad577ec1",
+  AgentOrchestrator: "0xbA99f039b7892d9F546253444c95EDea822471b0",
+  USDC: "0x3600000000000000000000000000000000000000",
+  AgentRetainer: "",
+};
+const RABI = [
+  "function createPlan(uint256 agentTokenId, uint256 priceUsdc, uint256 intervalSeconds, string description) external returns (uint256)",
+  "function updatePlan(uint256 planId, uint256 newPriceUsdc, uint256 newIntervalSeconds) external",
+  "function deactivatePlan(uint256 planId) external",
+  "function subscribe(uint256 planId) external returns (uint256)",
+  "function cancelSubscription(uint256 subscriptionId) external",
+  "function charge(uint256 subscriptionId) external",
+  "function getPlan(uint256 planId) external view returns (tuple(uint256 id, uint256 agentTokenId, uint256 priceUsdc, uint256 intervalSeconds, string description, uint8 status, uint256 createdAt, uint256 subscriberCount))",
+  "function getSubscription(uint256 subscriptionId) external view returns (tuple(uint256 id, uint256 planId, address client, uint8 status, uint256 startedAt, uint256 lastChargedAt, uint256 totalCharged, uint256 cycleCount))",
+  "function getPlansByAgent(uint256 agentTokenId) external view returns (uint256[])",
+  "function getSubscriptionsByClient(address client) external view returns (uint256[])",
+  "function getSubscriptionsByPlan(uint256 planId) external view returns (uint256[])",
+  "function getActiveSubscriptionCount(uint256 planId) external view returns (uint256)",
+];
+const ERC20ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) external view returns (uint256)",
+];
+const PLAN_STATUS = ["Active", "Deactivated"];
+const SUB_STATUS = ["Active", "Cancelled", "Lapsed"];
+
+let provider=null, signer=null;
+
+function log(id,msg,cls=""){
+  const el=document.getElementById(id);
+  el.classList.add("on");
+  const d=document.createElement("div");
+  d.className="ll"+(cls?" "+cls:"");
+  d.innerHTML=msg;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+}
+function logTx(id,hash,lbl="Tx"){
+  log(id,`${lbl}: <a href="${EXPLORER}/tx/${hash}" target="_blank">${hash.slice(0,18)}...</a>`,"ok");
+}
+function clearLog(id){const el=document.getElementById(id);el.innerHTML="";el.classList.remove("on")}
+function setSB(addr,net){
+  document.getElementById("wa").textContent=addr?addr.slice(0,6)+"..."+addr.slice(-4):"Not connected";
+  document.getElementById("wn").textContent=net||"";
+  document.getElementById("dot").className="dot"+(addr?" on":"");
+}
+async function switchChain(){
+  await window.ethereum.request({method:"wallet_addEthereumChain",params:[{
+    chainId:CHAIN_HEX,chainName:"Arc Testnet",
+    nativeCurrency:{name:"USD Coin",symbol:"USDC",decimals:18},
+    rpcUrls:["https://rpc.testnet.arc.network"],
+    blockExplorerUrls:[EXPLORER],
+  }]});
+}
+async function connectWallet(){
+  clearLog("l1");
+  try{
+    if(!window.ethereum) throw new Error("MetaMask not detected.");
+    log("l1","Requesting accounts...");
+    await window.ethereum.request({method:"eth_requestAccounts"});
+    const cid=parseInt(await window.ethereum.request({method:"eth_chainId"}),16);
+    if(cid!==CHAIN_ID){log("l1","Wrong network -- switching to Arc Testnet...");await switchChain();}
+    provider=new ethers.BrowserProvider(window.ethereum);
+    signer=await provider.getSigner();
+    const addr=await signer.getAddress();
+    const net=await provider.getNetwork();
+    setSB(addr,"Arc Testnet ("+net.chainId+")");
+    log("l1","Connected: "+addr,"ok");
+  }catch(e){log("l1","Error: "+(e.shortMessage||e.message),"err")}
+}
+function needSigner(id){if(!signer){log(id,"Connect wallet first (Step 1).","err");return false;}return true;}
+function needRetainer(id){
+  const a=C.AgentRetainer||document.getElementById("ra").value.trim();
+  if(!a||!ethers.isAddress(a)){log(id,"Enter the AgentRetainer address above.","err");return null;}
+  C.AgentRetainer=a;return a;
+}
+function rc(){return new ethers.Contract(C.AgentRetainer,RABI,signer);}
+
+async function createPlan(){
+  clearLog("l2");if(!needSigner("l2"))return;if(!needRetainer("l2"))return;
+  try{
+    const agent=BigInt(document.getElementById("cp-agent").value.trim());
+    const price=BigInt(document.getElementById("cp-price").value.trim());
+    const interval=BigInt(document.getElementById("cp-interval").value.trim());
+    const desc=document.getElementById("cp-desc").value.trim();
+    log("l2","Sending createPlan...");
+    const tx=await rc().createPlan(agent,price,interval,desc);
+    logTx("l2",tx.hash,"Tx sent");
+    const r=await tx.wait();
+    log("l2","Plan created in block "+r.blockNumber,"ok");
+  }catch(e){log("l2","Error: "+(e.shortMessage||e.message),"err")}
+}
+
+async function doSubscribe(){
+  clearLog("l3");if(!needSigner("l3"))return;const ra=needRetainer("l3");if(!ra)return;
+  try{
+    const planId=BigInt(document.getElementById("sub-plan").value.trim());
+    const amt=BigInt(document.getElementById("sub-approve").value.trim());
+    const usdc=new ethers.Contract(C.USDC,ERC20ABI,signer);
+    const me=await signer.getAddress();
+    log("l3","Checking allowance...");
+    const al=await usdc.allowance(me,ra);
+    if(al<amt){
+      log("l3","Approving USDC...");
+      const at=await usdc.approve(ra,amt);
+      logTx("l3",at.hash,"Approve sent");await at.wait();log("l3","Approved.","ok");
+    }else{log("l3","Allowance sufficient, skipping approve.","ok")}
+    log("l3","Sending subscribe...");
+    const tx=await rc().subscribe(planId);
+    logTx("l3",tx.hash,"Tx sent");
+    const r=await tx.wait();log("l3","Subscribed, block "+r.blockNumber,"ok");
+  }catch(e){log("l3","Error: "+(e.shortMessage||e.message),"err")}
+}
+
+async function doCharge(prefix,logId){
+  clearLog(logId);if(!needSigner(logId))return;if(!needRetainer(logId))return;
+  try{
+    const subId=BigInt(document.getElementById(prefix+"-sub").value.trim());
+    log(logId,"Sending charge...");
+    const tx=await rc().charge(subId);
+    logTx(logId,tx.hash,"Tx sent");
+    const r=await tx.wait();log(logId,"Charged in block "+r.blockNumber,"ok");
+  }catch(e){log(logId,"Error: "+(e.shortMessage||e.message),"err")}
+}
+
+async function doCancel(){
+  clearLog("l6");if(!needSigner("l6"))return;if(!needRetainer("l6"))return;
+  try{
+    const subId=BigInt(document.getElementById("cx-sub").value.trim());
+    log("l6","Sending cancelSubscription...");
+    const tx=await rc().cancelSubscription(subId);
+    logTx("l6",tx.hash,"Tx sent");
+    const r=await tx.wait();log("l6","Cancelled in block "+r.blockNumber,"ok");
+  }catch(e){log("l6","Error: "+(e.shortMessage||e.message),"err")}
+}
+
+async function viewPlan(){
+  clearLog("l7");if(!needSigner("l7"))return;const ra=needRetainer("l7");if(!ra)return;
+  try{
+    const pid=BigInt(document.getElementById("vs-plan").value.trim()||"0");
+    const c=new ethers.Contract(ra,RABI,provider);
+    const p=await c.getPlan(pid);
+    const priceUsdc=(Number(p.priceUsdc)/1e6).toFixed(2);
+    document.getElementById("vr-p").innerHTML=`<strong>Plan #${pid}</strong>
+Agent: #${p.agentTokenId}<br>Price: ${priceUsdc} USDC<br>
+Interval: ${p.intervalSeconds}s<br>Status: ${PLAN_STATUS[Number(p.status)]||p.status}<br>
+Subscribers: ${p.subscriberCount}<br>
+<span class="mono">${p.description}</span>`;
+    document.getElementById("vrs").style.display="grid";
+    log("l7","Plan loaded.","ok");
+  }catch(e){log("l7","Error: "+(e.shortMessage||e.message),"err")}
+}
+
+async function viewSub(){
+  clearLog("l7");if(!needSigner("l7"))return;const ra=needRetainer("l7");if(!ra)return;
+  try{
+    const sid=BigInt(document.getElementById("vs-sub").value.trim()||"0");
+    const c=new ethers.Contract(ra,RABI,provider);
+    const s=await c.getSubscription(sid);
+    const totalUsdc=(Number(s.totalCharged)/1e6).toFixed(2);
+    const lastCharged=new Date(Number(s.lastChargedAt)*1000).toISOString();
+    document.getElementById("vr-s").innerHTML=`<strong>Subscription #${sid}</strong>
+Plan: #${s.planId}<br>Client: <span class="mono">${s.client}</span><br>
+Status: ${SUB_STATUS[Number(s.status)]||s.status}<br>
+Cycles: ${s.cycleCount}<br>Total Charged: ${totalUsdc} USDC<br>
+Last Charged: ${lastCharged}`;
+    document.getElementById("vrs").style.display="grid";
+    log("l7","Subscription loaded.","ok");
+  }catch(e){log("l7","Error: "+(e.shortMessage||e.message),"err")}
+}
+
+window.addEventListener("load",async()=>{
+  if(!window.ethereum)return;
+  window.ethereum.on("accountsChanged",async(a)=>{
+    if(!a.length){provider=null;signer=null;setSB(null,null);}
+    else{provider=new ethers.BrowserProvider(window.ethereum);signer=await provider.getSigner();setSB(a[0],"Arc Testnet");}
+  });
+  window.ethereum.on("chainChanged",()=>location.reload());
+  try{
+    const a=await window.ethereum.request({method:"eth_accounts"});
+    if(a.length){provider=new ethers.BrowserProvider(window.ethereum);signer=await provider.getSigner();
+      const net=await provider.getNetwork();setSB(a[0],"Chain "+net.chainId);}
+  }catch(_){}
+});
+</script>
+</body>
+</html>
