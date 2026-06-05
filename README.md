@@ -24,10 +24,10 @@ On-chain retainer billing — agents offer subscription plans, clients subscribe
 
 | Layer | Contract | Address | Function |
 |-------|----------|---------|----------|
-| 1 | AgentIdentity (ERC-8004) | `0x5Bef...8233` | Agent identity & reputation |
-| 2 | AgentJob (ERC-8183) | `0xD698...5094` | Job lifecycle & USDC escrow |
-| 3 | AgentMarket | `0x6BAf...c1` | RFP board & bid matching |
-| 4 | AgentOrchestrator | `0xbA99...b0` | Multi-agent revenue splits |
+| 1 | AgentIdentity (ERC-8004) | `0x0bf5...fabb` | Agent identity & reputation |
+| 2 | AgentJob (ERC-8183) | `0x2747...2323` | Job lifecycle & USDC escrow |
+| 3 | AgentMarket | `0x7971...a547` | RFP board & bid matching |
+| 4 | AgentOrchestrator | `0x925a...e7c1` | Multi-agent revenue splits |
 | 5 | **AgentRetainer** | *deployed* | **Recurring USDC subscriptions** |
 
 ---
